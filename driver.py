@@ -9,7 +9,9 @@ if __name__ == "__main__":
 
     # testing code
     model = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    checker = Checker(**{"chat_model": model, "SERPAPI_API_KEY": os.getenv("SERPAPI_API_KEY")})
+
+    checker = Checker(model, os.getenv("TAVILY_API_KEY"))
+    
     print(checker.check("Leonardo DiCaprio's father's full name is George Paul DiCaprio"))
     print(checker.check("World War 2 ended in 1946"))
     print(checker.check("World War 2 ended in 1945"))
