@@ -10,7 +10,7 @@ import librosa
 tokenizer = Wav2Vec2Tokenizer.from_pretrained("facebook/wav2vec2-base-960h")
 model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
 
-def audio2text(audio_path: str) -> str:
+def wav2vec(audio_path: str) -> str:
     """
     A function to convert a single audio file to text using the Wav2Vec2 model.
 
@@ -33,5 +33,5 @@ def audio2text(audio_path: str) -> str:
 
 if __name__ == "__main__":
     audio_path = "output.wav"
-    transcription = audio2text(audio_path)
+    transcription = wav2vec(audio_path)
     print(f"Transcription: {transcription}")
