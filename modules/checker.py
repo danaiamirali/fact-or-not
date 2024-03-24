@@ -1,13 +1,6 @@
-from pydantic import BaseModel
-from langchain_community.chat_models import ChatOpenAI
-from langchain.agents import initialize_agent
-from langchain.prompts import PromptTemplate
-from langchain.tools import BaseTool, Tool
-from langchain_community.utilities import GoogleSerperAPIWrapper
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain import hub
-import os
 
 """
 An LLM-wrapper that can be used to fact check a given statement. 
@@ -30,19 +23,20 @@ class Checker():
         self.TAVILY_API_KEY = api_key
 
     def check(self, statement: str) -> bool:
-        tools = [TavilySearchResults()]
-
         instructions = """
-            Is the following statement true or false? 
-
-            If the statement is true, please respond with "True." and then provide the source.
-            If the statement is false, please respond with "False." and then provide a version of the statement that is actually true, with a source.
-            If you are unsure, or there is a lack of reputable sources, please respond with "Unsure."
-
-            Use the search tool to find a source for every answer, and output the source as "Source: link." 
+            Determine if there are sources of text that verify the input statment.
+            Use the tool to search the web and find sources about the input statement. 
+            Explain if the text found supports the input statement, or proves it wrong.
+            Provide the sources used afterwards.
+            At the very beginning of the response before anything else, write one of the 
+            following based on the rest of the response: 
+            "True", "Mostly true", "Slightly true", "False".
         """
+        
         base_prompt = hub.pull("langchain-ai/openai-functions-template")
         prompt = base_prompt.partial(instructions=instructions)
+
+        tools = [TavilySearchResults()]
 
         agent = create_openai_functions_agent(self.chat_model, tools, prompt)
         agent_executor = AgentExecutor(
@@ -50,7 +44,7 @@ class Checker():
             tools=tools,
             verbose=True,
         )
-
+        
         response = agent_executor.invoke({"input": statement})
         
         return response
