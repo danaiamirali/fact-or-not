@@ -12,6 +12,7 @@ Different deliverables for different mediums:
 - Purely text-based fact checker
 - YouTube video fact checker
 - Livestreaming audio fact checker
-  - Desktop app based
+  - Desktop app based to capture computer audio (C++ WinAPI?)
   - Mobile apps (record with your phone and get live fact checks)
-
+- Other forms
+  - Web client for YouTube and text-based fact checking
