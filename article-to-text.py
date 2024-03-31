@@ -13,6 +13,51 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage
 )
+def ending_output(text_response): #text_response is a list
+    new_text_response = []
+    if(len(text_response) == 1):
+        print("outputting right now")
+        print(type(text_response))
+        print(type(text_response[0]))
+        print(len(text_response))
+        print(text_response[0])
+        return text_response[0] if text_response[0] is not None else text_response
+    if (len(text_response) % 2 == 0):
+        print("even")
+        for i in range(0,len(text_response)-1,2):
+            print(i)
+            ending_response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": final_prompt+text_response[i]+"\n\n\n 2. "+text_response[i+1]}])  
+
+            ending_response = str(ending_response)
+            ending_response = ending_response[161: len(str(ending_response)) - 254]
+            print(ending_response)
+            new_text_response.append(ending_response)
+   
+    else:
+        print("odd")
+        ending_response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": final_prompt+text_response[0]+"\n\n\n 2. "+text_response[1]+"\n\n\n 3. "+text_response[2]}])  
+        ending_response = str(ending_response)
+        ending_response = ending_response[161: len(str(ending_response)) - 254]
+        new_text_response.append(ending_response)
+        for i in range(3,len(text_response)-1,2):
+            print(i)
+            ending_response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": final_prompt+text_response[i]+"\n\n\n 2. "+text_response[i+1]}])  
+
+            ending_response = str(ending_response)
+            ending_response = ending_response[161: len(str(ending_response)) - 254]
+            print(ending_response)
+            new_text_response.append(ending_response)
+    ending_output(new_text_response)
+            
+
+
+
 
 
 client = openai.OpenAI(api_key="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")
@@ -47,13 +92,14 @@ print(len(texts))
 ##text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 ##texts = text_splitter.split_documents(documents)
 
-final_prompt = """I have compiled a string of analyses from each paragraph in an 
+final_prompt = """I have compiled a string of analyses from a series of paragraphs in an 
                 article, where each analysis addresses the tone and potential bias 
                 of each paragraph. Summarize this analysis. Make sure to highlight 
                 potentially important information and potential patterns.
-                Do not use any other information other than this article: """
+                Do not use any other information other than this article: 
+                1. """
 
-text_response = ""
+text_response = []
 
 
 # prompt for LLM
@@ -74,17 +120,23 @@ for i in texts:
     )
     response = str(response)
     response = response[161: len(str(response)) - 254]
-    text_response += response + "\n \n \n"
+
+    
+    text_response.append(response)
     response = ""
 
-#summary
-#ending_response = client.chat.completions.create(
+print(ending_output(text_response))
+
+
+
+#summary -alter so we merge them slowly
+# ending_response = client.chat.completions.create(
 #       model="gpt-3.5-turbo",
 #      messages=[{"role": "user", "content": final_prompt+response}]
 #    )
-#ending_response = str(ending_response)
-#ending_response = ending_response[161: len(str(ending_response)) - 254]
-#print(ending_response)
+# ending_response = str(ending_response)
+# ending_response = ending_response[161: len(str(ending_response)) - 254]
+# print(ending_response)
 
 
 
