@@ -1,19 +1,13 @@
 from langchain_community.document_loaders import TextLoader
-
 from typing import List, Optional
-
 from langchain.chains import create_structured_output_runnable
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_openai import ChatOpenAI
-
 from langchain_text_splitters import TokenTextSplitter
-
 from langchain import hub
-
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain.agents import AgentExecutor, create_openai_functions_agent
-
 
 class Statement(BaseModel):
     statement: str = Field(
