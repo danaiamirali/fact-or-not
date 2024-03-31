@@ -1,38 +1,15 @@
-import pyaudio
-import wave
+import soundcard as sc
+import soundfile as sf
 
-CHUNK = 1024
-FORMAT = pyaudio.paInt16
-CHANNELS = 2
-RATE = 44100
-RECORD_SECONDS = 5
-WAVE_OUTPUT_FILENAME = "output.wav"
+# Get the specific audio input device
+device = sc.get_microphone("BlackHole")
 
-p = pyaudio.PyAudio()
+# Record audio for 5 seconds
+duration = 5  # seconds
+audio_data = device.record(samplerate=44100, numframes=duration * 44100)
 
-stream = p.open(format=FORMAT,
-                channels=CHANNELS,
-                rate=RATE,
-                input=True,
-                frames_per_buffer=CHUNK)
+# Save the recorded audio to a WAV file
+output_file = "output.wav"
+sf.write(output_file, audio_data, samplerate=44100)
 
-print("* recording")
-
-frames = []
-
-for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-    data = stream.read(CHUNK)
-    frames.append(data)
-
-print("* done recording")
-
-stream.stop_stream()
-stream.close()
-p.terminate()
-
-wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-wf.setnchannels(CHANNELS)
-wf.setsampwidth(p.get_sample_size(FORMAT))
-wf.setframerate(RATE)
-wf.writeframes(b''.join(frames))
-wf.close()
+print(f"Recording saved to {output_file}.")
