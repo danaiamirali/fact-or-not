@@ -8,7 +8,6 @@ import os
 load_dotenv()
 
 if __name__ == "__main__":
-
     model = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     search_tool = TavilySearcher()
     checker = Checker(model, search_tool)
