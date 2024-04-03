@@ -16,13 +16,6 @@ Usage:
 
 """
 
-class Searcher():
-    name = "Internet Searcher"
-    description = "A tool that can be used to search for information on the internet."
-    def __init__(self):
-        # TO DO
-        pass
+from langchain_community.tools.tavily_search import TavilySearchResults as tsr
 
-    def search(self, query: str) -> dict:
-        # TO DO
-        pass
+TavilySearcher = tsr
