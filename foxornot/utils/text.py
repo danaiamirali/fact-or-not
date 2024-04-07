@@ -4,7 +4,6 @@ from foxornot.fact_checking.checker import Checker
 from foxornot.fact_checking.searcher import TavilySearcher
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
-from langchain_community.chat_models import ChatOpenAI
 from langchain.text_splitter import TokenTextSplitter
 from ast import literal_eval
 

@@ -1,11 +1,8 @@
 import streamlit as st
-from annotated_text import annotated_text
 from langchain.chat_models import ChatOpenAI
 from foxornot.utils.text import check_from_statements, split_into_statements
 from foxornot.youtube import video_to_text
 from dotenv import load_dotenv
-import time
-import threading
 
 load_dotenv()
 
