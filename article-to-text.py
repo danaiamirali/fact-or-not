@@ -1,6 +1,7 @@
 from langchain_community.chat_models import ChatOpenAI
 from openai import OpenAI
 from langchain_openai import OpenAIEmbeddings
+from langchain_openai import ChatOpenAI
 #pip install langchain_openai
 from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
@@ -13,59 +14,61 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage
 )
-def ending_output(text_response): #text_response is a list
+
+# class Bias_Detection:
+#     def __init__(prompt, final_prompt, )
+
+
+def formatting(response):
+    response = response[161:]
+    for index, char in enumerate(response):
+        if response[index:index + 4] == "role":
+            response = response[:index - 3]
+            break
+    return response
+
+def ending_output(text_response_input, final_prompt): #text_response is a list
     new_text_response = []
-    if(len(text_response) == 1):
-        print("outputting right now")
-        print(type(text_response))
-        print(type(text_response[0]))
-        print(len(text_response))
-        print(text_response[0])
-        return text_response[0] if text_response[0] is not None else text_response
-    if (len(text_response) % 2 == 0):
-        print("even")
-        for i in range(0,len(text_response)-1,2):
-            print(i)
+    if(len(text_response_input) == 1):
+        #print(text_response_input[0])
+        final = str(text_response_input[0])
+        return final
+    if (len(text_response_input) % 2 == 0):
+        for i in range(0,len(text_response_input)-1,2):
             ending_response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": final_prompt+text_response[i]+"\n\n\n 2. "+text_response[i+1]}])  
+            messages=[{"role": "user", "content": final_prompt+text_response_input[i]+"\n\n\n 2. "+text_response_input[i+1]}])  
 
             ending_response = str(ending_response)
-            ending_response = ending_response[161: len(str(ending_response)) - 254]
-            print(ending_response)
+            ending_response = formatting(ending_response)
             new_text_response.append(ending_response)
    
     else:
-        print("odd")
         ending_response = client.chat.completions.create(
         model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": final_prompt+text_response[0]+"\n\n\n 2. "+text_response[1]+"\n\n\n 3. "+text_response[2]}])  
+        messages=[{"role": "user", "content": final_prompt+text_response_input[0]+"\n\n\n 2. "+text_response_input[1]+"\n\n\n 3. "+text_response_input[2]}])  
         ending_response = str(ending_response)
-        ending_response = ending_response[161: len(str(ending_response)) - 254]
+        ending_response = formatting(ending_response)
         new_text_response.append(ending_response)
-        for i in range(3,len(text_response)-1,2):
-            print(i)
+        for i in range(3,len(text_response_input)-1,2):
             ending_response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": final_prompt+text_response[i]+"\n\n\n 2. "+text_response[i+1]}])  
+            messages=[{"role": "user", "content": final_prompt+text_response_input[i]+"\n\n\n 2. "+text_response_input[i+1]}])  
 
             ending_response = str(ending_response)
-            ending_response = ending_response[161: len(str(ending_response)) - 254]
-            print(ending_response)
+            ending_response = formatting(ending_response)
             new_text_response.append(ending_response)
-    ending_output(new_text_response)
+    return ending_output(new_text_response, final_prompt)
             
-
-
 
 
 
 client = openai.OpenAI(api_key="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")
 
-#import requests
+    #import requests
 load_dotenv()
 
-##replaced openai with client. perhaps try this 
+    ##replaced openai with client. perhaps try this 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 llm = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=os.getenv("OPENAI_API_KEY"))
@@ -82,11 +85,11 @@ documents = loader.load()
 texts = article_str.strip().split('\n')
 texts = [paragraph for paragraph in texts if paragraph]
 
-print()
-print()
-print()
-print(type(texts))
-print(len(texts))
+# print()
+# print()
+# print()
+# print(type(texts))
+# print(len(texts))
 
 # Split and embed the text in the documents
 ##text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
@@ -111,7 +114,8 @@ for i in texts:
                 matter, which could influence the reader's perception in a non-neutral 
                 way. Consider word choice, sentence construction, and any emotionally
                 charged language or phrasing when giving your analysis. Here is the 
-                paragraph. Make the analysis brief. Do not use any other information other than this article:
+                paragraph. Make the analysis brief. Do not use any other information 
+                other than this article:
                 """ + str(i)
 
     response = client.chat.completions.create(
@@ -125,7 +129,8 @@ for i in texts:
     text_response.append(response)
     response = ""
 
-print(ending_output(text_response))
+end_string = ending_output(text_response, final_prompt)
+print(end_string)
 
 
 
