@@ -1,6 +1,8 @@
 
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain import hub
+from pydantic import BaseModel, Field
+from typing import List
 
 """
 An LLM-wrapper that can be used to fact check a given statement. 
@@ -19,6 +21,18 @@ Usage:
     checker.check('The earth is round')
     # Output: True
 """
+
+class Output(BaseModel):
+    reasoning: str = Field(
+        ..., description="Reason through the input statement and the sources found, and analyze if the sources support the input statement."
+    )
+    sources: List[str] = Field(
+        ..., description="Provide the sources used in the response."
+    )
+    conclusion: str = Field(
+        ..., description="Write one of the following: 'True', 'Mostly true', 'Slightly true', 'False.'"
+    )
+
 class Checker():
     def __init__(self, model, search_tool):
         self.chat_model = model
@@ -57,7 +71,7 @@ class Checker():
         
         response = agent_executor.invoke({"input": statement})
         
-        return response
+        return response.output
     
 """
 A streaming version of the Checker class.
