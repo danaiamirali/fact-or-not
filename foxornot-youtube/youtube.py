@@ -1,4 +1,3 @@
-from langchain_community.document_loaders import TextLoader
 from typing import List
 from foxornot.fact_checking.checker import Checker
 from foxornot.fact_checking.searcher import TavilySearcher
@@ -51,7 +50,7 @@ def check_from_text(input_text: str) -> tuple[List[str], List[str]]:
 
     statement_objects = []
     for extraction in extractions:
-        print(extraction)
+        print("EXTRACTION | ", extraction)
         statement_objects.extend(extraction)
 
     statements = []
@@ -71,7 +70,7 @@ def video_to_text(url: str) -> str:
     yt = YouTube(url)
     audio_stream = yt.streams.filter(only_audio=True).first()
 
-    output_path = "YoutubeAudios"
+    output_path = "audios"
     filename = "audio.mp3"
     audio_stream.download(output_path=output_path, filename=filename)
 

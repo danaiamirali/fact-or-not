@@ -8,10 +8,10 @@ import os
 load_dotenv()
 
 if __name__ == "__main__":
-    model = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    model = ChatOpenAI(model="gpt-3.5-turbo", api_key=os.getenv("OPENAI_API_KEY"))
     search_tool = TavilySearcher()
     checker = Checker(model, search_tool)
-    checker.check('The earth is flat')
+    print(checker.check('The earth is flat'))
     # Output: False
-    checker.check('The earth is round')
+    print(checker.check('The earth is round'))
     # Output: True
