@@ -1,11 +1,12 @@
 import streamlit as st
 from langchain.chat_models import ChatOpenAI
 from foxornot.utils.text import check_from_statements, split_into_statements
-from foxornot.fact_checking.searcher import TavilySearcher
 from youtube import video_to_text
 from dotenv import load_dotenv
 import time
 import os
+
+
 
 load_dotenv()
 
@@ -14,11 +15,21 @@ load_dotenv()
 st.title("Fox or Not?")
 st.write("This app will ask you for a YouTube video URL, download the audio from the video, transform it to text, detect the language of the file and save it to a txt file.")
 
+if 'button' not in st.session_state:
+    st.session_state.button = False
+
+def click_button():
+    st.session_state.button = not st.session_state.button
+
 api_key = None
 tavily_api_key = None
 url = None
 # Ask user for the YouTube video URL
 with st.form(key='my_form'):
+    model = st.selectbox(
+        'Which model would you like to use?',
+        ('gpt-3.5-turbo', 'gpt-4')
+    )
     if "OPENAI_API_KEY" not in os.environ:
         api_key = st.text_input("Enter your OpenAI API key:", type="password")
     if "TAVILY_API_KEY" not in os.environ:
@@ -37,7 +48,7 @@ if url:
     # st.video(url) 
 
     llm = ChatOpenAI(
-        model="gpt-3.5-turbo",
+        model=model,
         temperature=0
     )
     with st.spinner("Transcribing the video..."):

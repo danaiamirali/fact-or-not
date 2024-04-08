@@ -63,22 +63,32 @@ def check_from_text(llm, input_text: str) -> tuple[List[str], List[str]]:
     responses = []
     search_tool = TavilySearcher()
     checker = Checker(llm, search_tool)
+    final_statements = []
     for s in statements:
         # obtain the response from the checker
         # should batch this in the future
-        result = checker.check(s)
+        try: 
+            result = checker.check(s)
+        except:
+            continue
+        final_statements.append(s)
         responses.append(result)
 
-    return statements, responses
+    return final_statements, responses
 
 def check_from_statements(llm, statements: List[str]) -> List[str]:
     responses = []
     search_tool = TavilySearcher()
     checker = Checker(llm, search_tool)
+    final_statements = []
     for s in statements:
         # obtain the response from the checker
         # should batch this in the future
-        result = checker.check(s)
+        try: 
+            result = checker.check(s)
+        except:
+            continue
+        final_statements.append(s)
         responses.append(result)
 
     return statements, responses

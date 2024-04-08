@@ -105,11 +105,16 @@ class Checker():
 
         if clean:
             response = re.sub(r"\d\.", "", response)
-            parts = re.split("Reasoning:|Sources:|Conclusion:", response)
-            
-            reasoning = parts[1].strip()
-            sources = parts[2]
-            conclusion = parts[3].strip()
+            # print(response)
+                
+            try:    
+                parts = re.split("Reasoning:|Sources:|Conclusion:", response)
+                
+                reasoning = parts[1].strip()
+                sources = parts[2]
+                conclusion = parts[3].strip()
+            except:
+                raise Exception(f"Could not parse response: {response}")
 
             return reasoning, sources, conclusion
 
