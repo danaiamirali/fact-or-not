@@ -6,20 +6,12 @@ from dotenv import load_dotenv
 import time
 import os
 
-
-
 load_dotenv()
 
 # Simple Streamlit app inputting a youtube video URL, and outputting a fact checking summary
 
 st.title("Fox or Not?")
 st.write("This app will ask you for a YouTube video URL, download the audio from the video, transform it to text, detect the language of the file and save it to a txt file.")
-
-if 'button' not in st.session_state:
-    st.session_state.button = False
-
-def click_button():
-    st.session_state.button = not st.session_state.button
 
 api_key = None
 tavily_api_key = None
