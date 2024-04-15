@@ -79,6 +79,8 @@ def video_to_text(url: str) -> str:
 
     transcription = client.audio.transcriptions.create(
         model="whisper-1", 
-        file=file
+        file=file,
+        response_format="verbose_json",
+        timestamp_granularities=["word"]
     )
-    return transcription.text
+    return transcription

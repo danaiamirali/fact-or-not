@@ -91,4 +91,4 @@ def check_from_statements(llm, statements: List[str]) -> List[str]:
         final_statements.append(s)
         responses.append(result)
 
-    return statements, responses
+    return final_statements, responses
