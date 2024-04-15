@@ -27,60 +27,99 @@ def formatting(response):
             break
     return response
 
+# def ending_output(text_response_input, final_prompt, client): #text_response is a list
+#     new_text_response = []
+#     if(len(text_response_input) == 1):
+#         #print(text_response_input[0])
+#         final = str(text_response_input[0])
+#         return final
+#     if (len(text_response_input) % 2 == 0):
+#         for i in range(0,len(text_response_input)-1,2):
+#             ending_response = client.chat.completions.create(
+#             model="gpt-3.5-turbo",
+#             messages=[{"role": "user", "content": final_prompt+text_response_input[i]+"\n\n\n 2. "+text_response_input[i+1]}])  
+
+#             ending_response = str(ending_response)
+#             ending_response = formatting(ending_response)
+#             new_text_response.append(ending_response)
+
+#     else:
+#         ending_response = client.chat.completions.create(
+#         model="gpt-3.5-turbo",
+#         messages=[{"role": "user", "content": final_prompt+text_response_input[0]+"\n\n\n 2. "+text_response_input[1]+"\n\n\n 3. "+text_response_input[2]}])  
+#         ending_response = str(ending_response)
+#         ending_response = formatting(ending_response)
+#         new_text_response.append(ending_response)
+#         for i in range(3,len(text_response_input)-1,2):
+#             ending_response = client.chat.completions.create(
+#             model="gpt-3.5-turbo",
+#             messages=[{"role": "user", "content": final_prompt+text_response_input[i]+"\n\n\n 2. "+text_response_input[i+1]}])  
+
+#             ending_response = str(ending_response)
+#             ending_response = formatting(ending_response)
+#             new_text_response.append(ending_response)
+#     return ending_output(new_text_response, final_prompt, client)
 
 
-def ending_output(text_response_input, final_prompt, client): #text_response is a list
-    new_text_response = []
-    if(len(text_response_input) == 1):
-        #print(text_response_input[0])
-        final = str(text_response_input[0])
-        return final
-    if (len(text_response_input) % 2 == 0):
-        for i in range(0,len(text_response_input)-1,2):
-            ending_response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": final_prompt+text_response_input[i]+"\n\n\n 2. "+text_response_input[i+1]}])  
+def process_pair(pair, final_prompt, client, new_text_response):
+    prompt = final_prompt + pair[0]
+    if len(pair) > 1:
+        prompt += "\n\n\n 2. " + pair[1]
 
-            ending_response = str(ending_response)
-            ending_response = formatting(ending_response)
-            new_text_response.append(ending_response)
-
-    else:
-        ending_response = client.chat.completions.create(
+    ending_response = client.chat.completions.create(
         model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": final_prompt+text_response_input[0]+"\n\n\n 2. "+text_response_input[1]+"\n\n\n 3. "+text_response_input[2]}])  
-        ending_response = str(ending_response)
-        ending_response = formatting(ending_response)
-        new_text_response.append(ending_response)
-        for i in range(3,len(text_response_input)-1,2):
-            ending_response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": final_prompt+text_response_input[i]+"\n\n\n 2. "+text_response_input[i+1]}])  
+        messages=[{"role": "user", "content": prompt}]
+    )
 
-            ending_response = str(ending_response)
-            ending_response = formatting(ending_response)
-            new_text_response.append(ending_response)
+    ending_response = str(ending_response)
+    ending_response = formatting(ending_response)
+
+    new_text_response.append(ending_response)
+
+def ending_output(text_response_input, final_prompt, client):
+    print("start")
+    if not text_response_input:
+        return ""
+
+    new_text_response = []
+    threads = []
+
+    for i in range(0, len(text_response_input), 2):
+        pair = text_response_input[i:i + 2]
+        print("pre_pair")
+        thread = threading.Thread(target=process_pair, args=(pair, final_prompt, client, new_text_response))
+        print("threading") 
+        thread.start()
+        threads.append(thread)
+
+    for thread in threads:
+        thread.join()
+        print("join")
+    
+    # If there's only one thread left (final output), return it directly
+    if len(new_text_response) == 1:
+        return new_text_response[0]
+
     return ending_output(new_text_response, final_prompt, client)
 
 
 class Bias_Detection():
-    def __init__(self, txt_file, api_key):
+    def __init__(self, txt_file, client):
         self.txt_file = txt_file
-        self.api_key = api_key
+        self.client = client
                     
-    def master_output(self, apikey, txt_file):    
-
-        client = openai.OpenAI(api_key=apikey)
+    def master_output(self) -> str:    
+        #client = openai.OpenAI(api_key=self.api_key)
 
         #import requests
         #load_dotenv()
 
         ##replaced openai with client. perhaps try this 
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        #openai.api_key = os.getenv("OPENAI_API_KEY")
 
         #llm = ChatOpenAI(model_name="gpt-3.5-turbo", api_key=os.getenv("OPENAI_API_KEY"))
 
-        article_txt=open(txt_file,"r")
+        article_txt=open(self.txt_file,"r")
         article_str = article_txt.read() # string of the entire file
         #paragraphs = article_str.split('\n\n') #list each paragraph is an element
         #embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
@@ -122,21 +161,20 @@ class Bias_Detection():
                         way. Consider word choice, sentence construction, and any emotionally
                         charged language or phrasing when giving your analysis. Here is the 
                         paragraph. Make the analysis brief. Do not use any other information 
-                        other than this article:
+                        other than this article:\n
                         """ + str(i)
 
-            response = client.chat.completions.create(
+            response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}]
             )
             response = str(response)
             response = formatting(response)
 
-            
             text_response.append(response)
             response = ""
 
-        return ending_output(text_response, final_prompt, client)
+        return ending_output(text_response, final_prompt, self.client)
 
 
 
