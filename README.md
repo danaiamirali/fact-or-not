@@ -1,2 +1,2 @@
-# Fox Or Not
-A tool for fact-checking livestream or async video or text data.
+# Fact Or Not
+A tool for applying credibility analysis with LLMs.
