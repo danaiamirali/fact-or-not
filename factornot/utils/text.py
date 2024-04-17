@@ -25,7 +25,7 @@ def split_into_statements(llm, input_text: str, statements = None) -> List[str]:
             "You are an expert at identifying claims in text. "
             "Only extract statements that are considered a claim or assertion. "
             "It should be possible to support or refute the statements using evidence found on the web."
-            "Return the statements like an array of strings in Python - do not return anything else.",
+            "Return the statements like an array of strings in Python (A PYTHON LIST) - do not return anything else.",
         ),
         # MessagesPlaceholder('examples'), # Keep on reading through this use case to see how to use examples to improve performance
         ("human", "{text}"),
