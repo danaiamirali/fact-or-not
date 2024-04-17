@@ -1,7 +1,7 @@
 from langchain_community.document_loaders import TextLoader
 from typing import List
-from foxornot.fact_checking.checker import Checker
-from foxornot.fact_checking.searcher import TavilySearcher
+from factornot.fact_checking.checker import Checker
+from factornot.fact_checking.searcher import TavilySearcher
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain.text_splitter import TokenTextSplitter
@@ -25,7 +25,7 @@ def split_into_statements(llm, input_text: str, statements = None) -> List[str]:
             "You are an expert at identifying claims in text. "
             "Only extract statements that are considered a claim or assertion. "
             "It should be possible to support or refute the statements using evidence found on the web."
-            "Return the statements like an array of strings in Python - do not return anything else.",
+            "Return the statements like an array of strings in Python (A PYTHON LIST) - do not return anything else.",
         ),
         # MessagesPlaceholder('examples'), # Keep on reading through this use case to see how to use examples to improve performance
         ("human", "{text}"),

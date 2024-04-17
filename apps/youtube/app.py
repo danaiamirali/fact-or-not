@@ -1,6 +1,6 @@
 import streamlit as st
 from langchain_openai import ChatOpenAI
-from foxornot.utils.text import check_from_statements, split_into_statements
+from factornot.utils.text import check_from_statements, split_into_statements
 from youtube import video_to_text
 from dotenv import load_dotenv
 import time
