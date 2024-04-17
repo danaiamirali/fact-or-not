@@ -1,5 +1,5 @@
-from foxornot.fact_checking.checker import Checker
-from foxornot.fact_checking.searcher import TavilySearcher
+from factornot.fact_checking.checker import Checker
+from factornot.fact_checking.searcher import TavilySearcher
 from langchain.chat_models import ChatOpenAI
 
 from dotenv import load_dotenv
