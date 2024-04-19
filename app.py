@@ -1,9 +1,9 @@
 import streamlit as st
 from langchain_openai import ChatOpenAI
 from factornot.utils.text import check_from_statements, split_into_statements
+from factornot.bias_detection.checker import Checker
 from youtube import video_to_text
 from dotenv import load_dotenv
-import time
 import os
 
 load_dotenv()
@@ -33,12 +33,15 @@ if 'responses' not in session_state:
 if 'time' not in session_state:
     session_state.time = 0
 
+if 'bias' not in session_state:
+    session_state.bias = ''
+
 st.set_page_config(layout="wide")
 
 left, right = st.columns([2, 1], gap="large")
 
 with st.sidebar:
-    st.title("Fox or Not?")
+    st.title("Fact or Not?")
     st.write("This app will accept a YouTube video URL, download the audio from the video, transform it to text, and check the factuality of any claims made with sources on the Web.")
 
     api_key = None
@@ -60,7 +63,7 @@ with st.sidebar:
             session_state.prev_url = url
             session_state.url_processed = False
 
-        st.form_submit_button(label='Fact Check')
+        st.form_submit_button(label='Examine Video')
 
     if "OPENAI_API_KEY" not in os.environ:
         os.environ["OPENAI_API_KEY"] = api_key
@@ -77,7 +80,7 @@ def displayRight():
 
             with nav_col1:
                 if st.button("Back", key="back_button"):
-                    session_state.index = max(0, session_state.index - 1)
+                    session_state.index = max(-1, session_state.index - 1)
                     container.empty()
 
             with nav_col2:
@@ -86,30 +89,33 @@ def displayRight():
                     container.empty()
 
             with time_col:
-                seconds = session_state.start_times[session_state.index]
-                if seconds:
-                    minutes = int(seconds // 60)
-                    remaining_seconds = round(seconds % 60)
-                    if minutes == 0:
-                        if st.button(f"Time: {remaining_seconds}s", key="time_button"):
-                            session_state.time = session_state.start_times[session_state.index]
+                if session_state.index >= 0:
+                    seconds = session_state.start_times[session_state.index]
+                    if seconds:
+                        minutes = int(seconds // 60)
+                        remaining_seconds = round(seconds % 60)
+                        if minutes == 0:
+                            if st.button(f"Time: {remaining_seconds}s", key="time_button"):
+                                session_state.time = session_state.start_times[session_state.index]
+                        else:
+                            if st.button(f"Time: {minutes}m {remaining_seconds}s", key="time_button"):
+                                session_state.time = session_state.start_times[session_state.index]
                     else:
-                        if st.button(f"Time: {minutes}m {remaining_seconds}s", key="time_button"):
-                            session_state.time = session_state.start_times[session_state.index]
-                else:
-                    st.button("Time: N/A", key="time_button")
+                        st.button("Time: N/A", key="time_button")
 
             st.text("")
 
-            st.subheader(f"Statement:\n {session_state.statements[session_state.index]}")
-            st.subheader(f"Factuality:\n {session_state.responses[session_state.index][2].replace('**', '').strip('.')}")
+            if session_state.index >= 0:
+                st.subheader(f"Statement:\n {session_state.statements[session_state.index]}")
+                st.subheader(f"Factuality:\n {session_state.responses[session_state.index][2].replace('**', '').strip('.')}")
 
-            st.text("")
+                st.text("")
 
-            with st.expander("Why?"):
-                st.write(f"{session_state.responses[session_state.index][0].replace('**', '')}")
-                st.write(f"{session_state.responses[session_state.index][1].replace('**', '')}")
-
+                with st.expander("Why?"):
+                    st.write(f"{session_state.responses[session_state.index][0].replace('**', '')}")
+                    st.write(f"{session_state.responses[session_state.index][1].replace('**', '')}")
+            else:
+                st.subheader(f"Bias Explanation:\n {session_state.bias}")
 
 if url:
     if not session_state.url_processed:
@@ -129,6 +135,10 @@ if url:
                 transcription = transcription_json.text
                 timestamps = transcription_json.words
             #st.success("Transcription complete.")
+
+            with st.spinner("Running bias detection on the transcription..."):
+                check_object = Checker(llm)
+                session_state.bias = check_object.check(transcription, True)
 
             with st.spinner("Extracting statements from the transcription..."):
                 statements = split_into_statements(llm, transcription)

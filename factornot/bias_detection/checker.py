@@ -8,7 +8,7 @@ import threading
 #             break
 #     return response
 
-def process_pair(pair, final_prompt, client, new_text_response):
+def process_pair(pair, final_prompt, model, new_text_response):
     prompt = final_prompt + pair[0]
     if len(pair) > 1:
         prompt += "\n\n\n 2. " + pair[1]
