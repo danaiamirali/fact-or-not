@@ -172,6 +172,3 @@ if url:
             st.video(f"{url}?autoplay=1", start_time=session_state.time)
             
     st.markdown('<script>document.querySelector("iframe").src = document.querySelector("iframe").src + "?autoplay=1";</script>', unsafe_allow_html=True)
-            
-#<iframe width="1001" height="751" src="https://www.youtube.com/embed/iKYHf22qVdM" title="What happens if you don’t put your phone in airplane mode? - Lindsay DeMarchi" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-#<iframe width="1001" height="751" src="https://www.youtube.com/embed/iKYHf22qVdM" title="What happens if you don’t put your phone in airplane mode? - Lindsay DeMarchi" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
