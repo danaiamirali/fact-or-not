@@ -5,6 +5,7 @@ from factornot.bias_detection.checker import Checker
 from youtube import video_to_text
 from dotenv import load_dotenv
 import os
+import threading
 
 load_dotenv()
 
@@ -44,8 +45,8 @@ with st.sidebar:
     st.title("Fact or Not?")
     st.write("This app will accept a YouTube video URL, download the audio from the video, transform it to text, and check the factuality of any claims made with sources on the Web.")
 
-    api_key = None
-    tavily_api_key = None
+    api_key = st.secrets["OPEN_API_KEY"]
+    tavily_api_key = st.secrets["TAVILY_API_KEY"]
     url = None
     # Ask user for the YouTube video URL
     with st.form(key='my_form'):
@@ -53,10 +54,12 @@ with st.sidebar:
             'Which model would you like to use?',
             ('gpt-3.5-turbo', 'gpt-4')
         )
-        if "OPENAI_API_KEY" not in os.environ:
-            api_key = st.text_input("Enter your OpenAI API key:", type="password")
-        if "TAVILY_API_KEY" not in os.environ:
-            tavily_api_key = st.text_input("Enter your Tavily Search API key:", type="password")
+        
+        #if "OPENAI_API_KEY" not in os.environ:
+            #api_key = st.text_input("Enter your OpenAI API key:", type="password")
+        #if "TAVILY_API_KEY" not in os.environ:
+            #tavily_api_key = st.text_input("Enter your Tavily Search API key:", type="password")
+        
         url = st.text_input("Enter the YouTube video URL:")
 
         if url != session_state.prev_url:
@@ -65,10 +68,11 @@ with st.sidebar:
 
         st.form_submit_button(label='Examine Video')
 
-    if "OPENAI_API_KEY" not in os.environ:
-        os.environ["OPENAI_API_KEY"] = api_key
-    if "TAVILY_API_KEY" not in os.environ:
-        os.environ["TAVILY_API_KEY"] = tavily_api_key
+    #if "OPENAI_API_KEY" not in os.environ:
+        #os.environ["OPENAI_API_KEY"] = api_key
+    #if "TAVILY_API_KEY" not in os.environ:
+        #os.environ["TAVILY_API_KEY"] = tavily_api_key
+
 
 def displayRight():
     with right:
@@ -117,6 +121,7 @@ def displayRight():
             else:
                 st.subheader(f"Bias Explanation:\n {session_state.bias}")
 
+
 if url:
     if not session_state.url_processed:
         session_state.url_processed = True
@@ -134,46 +139,67 @@ if url:
                 transcription_json = video_to_text(url)
                 transcription = transcription_json.text
                 timestamps = transcription_json.words
-            #st.success("Transcription complete.")
-
+            
             with st.spinner("Running bias detection on the transcription..."):
                 check_object = Checker(llm)
                 session_state.bias = check_object.check(transcription, True)
 
             with st.spinner("Extracting statements from the transcription..."):
                 statements = split_into_statements(llm, transcription)
-            #st.success("Statements extracted from the transcription.")
+            
+            print(f'Number of statements extracted: {len(statements)}')
+
+            condition_event = threading.Event()
+
+            thread = threading.Thread(target=check_from_statements, args=(
+                llm, 
+                statements, 
+                st.session_state.start_times,
+                st.session_state.statements,
+                st.session_state.responses,
+                timestamps,
+                condition_event
+            ))
+
+            thread.start()
+
+            def hide():
+                with st.spinner("Checking statements for factual accuracy..."):
+                    statements, responses = check_from_statements(llm, statements)
+                #st.success("Accuracy checked.")
+
+                with st.spinner("Labeling statements with timestamps..."):
+                    start_times = []
+                    prev = 0
+                    for statement in statements:
+                        words = statement.split()
+                        num_words = len(words)
+                        first_word = words[0].lower()
+                        second_word = words[1].lower()
+                        last_word = words[-1].lower()[:-1]
+                        found_time = False
+                        for i in range(prev, len(timestamps) - num_words):
+                            if first_word == timestamps[i]['word'].lower():
+                                if second_word == timestamps[i+1]['word'].lower() or \
+                                last_word == timestamps[i+num_words-1]['word'].lower():
+                                    start_times.append(timestamps[i]['start'])
+                                    prev = i+1
+                                    found_time = True
+                                    break
+                        if not found_time:
+                            start_times.append(None)
+
+                st.session_state.start_times = start_times
+                st.session_state.statements = statements
+                st.session_state.responses = responses
 
             with st.spinner("Checking statements for factual accuracy..."):
-                statements, responses = check_from_statements(llm, statements)
-            #st.success("Accuracy checked.")
+                condition_event.wait()
 
-            with st.spinner("Labeling statements with timestamps..."):
-                start_times = []
-                prev = 0
-                for statement in statements:
-                    words = statement.split()
-                    num_words = len(words)
-                    first_word = words[0].lower()
-                    second_word = words[1].lower()
-                    last_word = words[-1].lower()[:-1]
-                    found_time = False
-                    for i in range(prev, len(timestamps) - num_words):
-                        if first_word == timestamps[i]['word'].lower():
-                            if second_word == timestamps[i+1]['word'].lower() or \
-                            last_word == timestamps[i+num_words-1]['word'].lower():
-                                start_times.append(timestamps[i]['start'])
-                                prev = i+1
-                                found_time = True
-                                break
-                    if not found_time:
-                        start_times.append(None)
-
-            st.session_state.start_times = start_times
-            st.session_state.statements = statements
-            st.session_state.responses = responses
-
-        displayRight()
+            if len(st.session_state.statements) > 0:
+                displayRight()
+            else:
+                st.write("No claims found")
 
     else:
         displayRight()
@@ -181,4 +207,3 @@ if url:
         with left:
             st.video(f"{url}?autoplay=1", start_time=session_state.time)
             
-    st.markdown('<script>document.querySelector("iframe").src = document.querySelector("iframe").src + "?autoplay=1";</script>', unsafe_allow_html=True)

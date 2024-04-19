@@ -76,19 +76,38 @@ def check_from_text(llm, input_text: str) -> tuple[List[str], List[str]]:
 
     return final_statements, responses
 
-def check_from_statements(llm, statements: List[str]) -> List[str]:
-    responses = []
+def check_from_statements(llm, statements: List[str], start_times, final_statements, responses, timestamps, condition_event) -> List[str]:
     search_tool = TavilySearcher()
     checker = Checker(llm, search_tool)
-    final_statements = []
+    prev = 0
     for s in statements:
         # obtain the response from the checker
         # should batch this in the future
         try: 
             result = checker.check(s)
-        except:
+        except Exception as e:
+            print(e)
             continue
         final_statements.append(s)
         responses.append(result)
 
-    return final_statements, responses
+        words = s.split()
+        num_words = len(words)
+        first_word = words[0].lower()
+        second_word = words[1].lower()
+        last_word = words[-1].lower()[:-1]
+        found_time = False
+        for i in range(prev, len(timestamps) - num_words):
+            if first_word == timestamps[i]['word'].lower():
+                if second_word == timestamps[i+1]['word'].lower() or \
+                last_word == timestamps[i+num_words-1]['word'].lower():
+                    start_times.append(timestamps[i]['start'])
+                    prev = i+1
+                    found_time = True
+                    break
+        if not found_time:
+            start_times.append(None)
+
+        condition_event.set()
+    condition_event.set()
+    print("Finished fact checking")
