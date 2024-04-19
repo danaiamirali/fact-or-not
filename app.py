@@ -13,28 +13,28 @@ load_dotenv()
 
 session_state = st.session_state
 
-if 'prev_url' not in session_state:
-    session_state.prev_url = ''
-
 if 'url_processed' not in session_state:
     session_state.url_processed = False
 
-if 'index' not in session_state:
+if 'prev_url' not in session_state or not session_state.url_processed:
+    session_state.prev_url = ''
+
+if 'index' not in session_state or not session_state.url_processed:
     session_state.index = 0
 
-if 'start_times' not in session_state:
+if 'start_times' not in session_state or not session_state.url_processed:
     session_state.start_times = []
 
-if 'statements' not in session_state:
+if 'statements' not in session_state or not session_state.url_processed:
     session_state.statements = []
 
-if 'responses' not in session_state:
+if 'responses' not in session_state or not session_state.url_processed:
     session_state.responses = []
 
-if 'time' not in session_state:
+if 'time' not in session_state or not session_state.url_processed:
     session_state.time = 0
 
-if 'bias' not in session_state:
+if 'bias' not in session_state or not session_state.url_processed:
     session_state.bias = ''
 
 st.set_page_config(layout="wide")
@@ -54,7 +54,7 @@ with st.sidebar:
             'Which model would you like to use?',
             ('gpt-3.5-turbo', 'gpt-4')
         )
-        
+
         #if "OPENAI_API_KEY" not in os.environ:
             #api_key = st.text_input("Enter your OpenAI API key:", type="password")
         #if "TAVILY_API_KEY" not in os.environ:
